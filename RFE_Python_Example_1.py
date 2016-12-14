@@ -4,9 +4,9 @@
 #pylint: disable=too-many-branches, too-many-public-methods, too-many-locals, too-many-arguments
 
 #============================================================================
-#This is an example code for RFExplorer python functionality. 
-#Display amplitude value in dBm and frequency in MHz of the maximum value of sweep data.
-#The number of stored sweep data can be configurated by time
+# This is an example code for RF Explorer IoT board using Python 3.5 running on a Raspberry Pi
+# Display amplitude value in dBm and frequency in MHz of the peak value detected of sweep data.
+# The number of stored sweep data can be configurated by time
 #============================================================================
 
 import time
