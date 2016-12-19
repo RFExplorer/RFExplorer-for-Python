@@ -36,13 +36,13 @@ import serial
 
 #---------------------------------------------------------
 
-import RFE_Common 
-from ReceiveSerialThread import ReceiveSerialThread
-from RFESweepData import RFESweepData
-from RFESweepDataCollection import RFESweepDataCollection
-from RFEConfiguration import RFEConfiguration
-from RFEAmplitudeTableData import RFEAmplitudeTableData
-from RFE6GEN_CalibrationData import RFE6GEN_CalibrationData
+from RFExplorer import RFE_Common 
+from RFExplorer.ReceiveSerialThread import ReceiveSerialThread
+from RFExplorer.RFESweepData import RFESweepData
+from RFExplorer.RFESweepDataCollection import RFESweepDataCollection
+from RFExplorer.RFEConfiguration import RFEConfiguration
+from RFExplorer.RFEAmplitudeTableData import RFEAmplitudeTableData
+from RFExplorer.RFE6GEN_CalibrationData import RFE6GEN_CalibrationData
 
 #---------------------------------------------------------
 
@@ -1168,7 +1168,7 @@ class RFECommunicator(object):
             elif(len(self.m_arrValidCP2102Ports) == 2):
                 for objPort in self.m_arrValidCP2102Ports:
                     if (objPort.device == "/dev/ttyAMA0"):
-                        self.m_arrConnectedPorts.remove(objPort)
+                        self.m_arrValidCP2102Ports.remove(objPort)
                 if(len(self.m_arrValidCP2102Ports) == 1):
                     sPortName = self.m_arrValidCP2102Ports[0].device
                     bConnected = True

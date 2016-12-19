@@ -22,8 +22,8 @@
 #Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #=============================================================================
 
-import RFE_Common
-from RFESweepData import RFESweepData
+from RFExplorer import RFE_Common 
+from RFExplorer.RFESweepData import RFESweepData
 
 class RFESweepDataCollection:    
     """ Allocates up to nCollectionSize elements to start with the container.

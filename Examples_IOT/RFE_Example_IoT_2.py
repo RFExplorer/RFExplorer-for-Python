@@ -4,8 +4,8 @@
 #pylint: disable=too-many-branches, too-many-public-methods, too-many-locals, too-many-arguments
 
 #============================================================================
-# This is an example code for RF Explorer IoT board using Python 3.5 running on a Raspberry Pi
-# Display amplitude in dBm and frequency in MHz of the maximum value of frequency range.
+#This is an example code for RFExplorer python functionality. 
+#Display amplitude in dBm and frequency in MHz of the maximum value of frequency range.
 #============================================================================
 
 import time
@@ -65,7 +65,7 @@ def ControlSettings(objRFE):
 # global variables and initialization
 #---------------------------------------------------------
 
-SERIALPORT = None    #serial port autoselect  
+SERIALPORT = None    #serial port data  
 BAUDRATE = 500000
 
 objRFE = RFExplorer.RFECommunicator()     #Initialize object and thread
@@ -88,7 +88,7 @@ try:
     #Connect to available port
     if (objRFE.ConnectPort(SERIALPORT, BAUDRATE)): 
         #Wait for unit to notify reset completed
-        while (objRFE.IsResetEvent):
+        while(objRFE.IsResetEvent):
             pass
         #Wait for unit to stabilize
         time.sleep(3)
@@ -96,14 +96,14 @@ try:
         #Request RF Explorer configuration
         objRFE.SendCommand_RequestConfigData()
         #Wait to receive configuration and model details
-        while (objRFE.ActiveModel == RFExplorer.RFE_Common.eModel.MODEL_NONE):
+        while(objRFE.ActiveModel == RFExplorer.RFE_Common.eModel.MODEL_NONE):
             objRFE.ProcessReceivedString(True)    #Process the received configuration
         
         #If object is an analyzer, we can scan for received sweeps
-        if (objRFE.IsAnalyzer()):
+        if(objRFE.IsAnalyzer()):
             #Control settings
             SpanSize, StartFreq, StopFreq = ControlSettings(objRFE)
-            if (SpanSize and StartFreq and StopFreq):
+            if(SpanSize and StartFreq and StopFreq):
                 #set new frequency range
                 objRFE.UpdateDeviceConfig(StartFreq, StopFreq)
 

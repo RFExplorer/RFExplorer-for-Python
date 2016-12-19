@@ -25,8 +25,8 @@
 import math
 from datetime import datetime
 
-import RFE_Common
-import RFExplorer
+from RFExplorer import RFE_Common 
+from RFExplorer import RFExplorer 
 
 class RFESweepData:
     """Class support a full sweep of data from RF Explorer, and it is used in the RFESweepDataCollection container

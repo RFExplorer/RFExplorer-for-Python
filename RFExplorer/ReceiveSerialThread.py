@@ -25,9 +25,9 @@
 import threading
 import time
 
-import RFE_Common
-from RFEConfiguration import RFEConfiguration
-from RFESweepData import RFESweepData
+from RFExplorer import RFE_Common 
+from RFExplorer.RFEConfiguration import RFEConfiguration
+from RFExplorer.RFESweepData import RFESweepData
 
 class ReceiveSerialThread(threading.Thread):
     """The secondary thread used to get data from USB/RS232 COM port

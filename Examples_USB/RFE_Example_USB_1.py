@@ -4,9 +4,9 @@
 #pylint: disable=too-many-branches, too-many-public-methods, too-many-locals, too-many-arguments
 
 #============================================================================
-# This is an example code for RF Explorer IoT board using Python 3.5 running on a Raspberry Pi
-# Display amplitude value in dBm and frequency in MHz of the peak value detected of sweep data.
-# The number of stored sweep data can be configurated by time
+#This is an example code for RFExplorer python functionality. 
+#Display amplitude value in dBm and frequency in MHz of the maximum value of sweep data.
+#The number of stored sweep data can be configurated by time
 #============================================================================
 
 import time
@@ -46,11 +46,10 @@ try:
     #Find and show valid serial ports
     objRFE.GetConnectedPorts()    
 
-    #Reset IoT board GPIO2 to High Level and GPIO3 to High Level
-    objRFE.ResetIOT_HW(True)
-
     #Connect to available port
-    if (objRFE.ConnectPort(SERIALPORT, BAUDRATE)):     
+    if (objRFE.ConnectPort(SERIALPORT, BAUDRATE)):
+        #Reset the unit to start fresh
+        objRFE.SendCommand("r")
         #Wait for unit to notify reset completed
         while(objRFE.IsResetEvent):
             pass
