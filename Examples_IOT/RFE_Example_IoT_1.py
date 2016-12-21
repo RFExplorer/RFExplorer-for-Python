@@ -32,8 +32,7 @@ def PrintPeak(objRFE):
 # global variables and initialization
 #---------------------------------------------------------
 
-#SERIALPORT = None    #serial port data 
-SERIALPORT = "/dev/ttyUSB0"    #serial port data 
+SERIALPORT = None    #serial port data 
 BAUDRATE = 500000
 
 objRFE = RFExplorer.RFECommunicator()     #Initialize object and thread
