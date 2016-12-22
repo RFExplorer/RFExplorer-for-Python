@@ -7,6 +7,7 @@
 #This is an example code for RFExplorer python functionality. 
 #Display amplitude value in dBm and frequency in MHz of the maximum value of sweep data.
 #The number of stored sweep data can be configurated by time
+#Please check details at https://github.com/RFExplorer/RFExplorer-for-Python/wiki/Python-Example-IoT-1
 #============================================================================
 
 import time
