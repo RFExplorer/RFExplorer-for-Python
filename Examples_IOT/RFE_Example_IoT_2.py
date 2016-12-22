@@ -6,6 +6,7 @@
 #============================================================================
 #This is an example code for RFExplorer python functionality. 
 #Display amplitude in dBm and frequency in MHz of the maximum value of frequency range.
+#Check more details at https://github.com/RFExplorer/RFExplorer-for-Python/wiki/Python-Example-IoT-2
 #============================================================================
 
 import time
