@@ -132,7 +132,13 @@ class ReceiveSerialThread(threading.Thread):
                                 self.m_hQueueLock.release() 
 
                         elif (nLen > 2 and ((strReceived[1] == 'q') or (strReceived[1] == 'Q'))):
-                            pass
+                            # Not sure what $q responses are, but I see them on the siggen
+                            # and need to drop them to unplug the receive queue
+                            nEndPos = strReceived.find("\r\n")
+                            if (nEndPos >= 0):
+                                sLeftOver = strReceived[nEndPos + 2:]
+                                strReceived = sLeftOver
+                                #print("sLeftOver: " + strReceived)
 
                         elif (nLen > 1 and (strReceived[1] == 'D')):
                             #This is dump screen data
