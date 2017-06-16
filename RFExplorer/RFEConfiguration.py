@@ -163,9 +163,9 @@ class RFEConfiguration:
                     self.m_eMode = RFE_Common.eMode.MODE_GEN_SWEEP_AMP
                 elif (sLine[4] == 'F'):
                     #Sweep Frequency mode
-                    self.fStartMHZ = int(sLine[6:7]) / 1000.0 #Note it comes in KHZ
+                    self.fStartMHZ = int(sLine[6:13]) / 1000.0 #Note it comes in KHZ
                     self.nFreqSpectrumSteps = int(sLine[14:18])
-                    self.fStepMHZ = int(sLine[19:7]) / 1000.0  #Note it comes in KHZ
+                    self.fStepMHZ = int(sLine[19:26]) / 1000.0  #Note it comes in KHZ
                     self.bRFEGenHighPowerSwitch = (sLine[27] == '1')
                     self.nRFEGenPowerLevel = int(ord(sLine[29]) - 0x30)
                     self.bRFEGenPowerON = (sLine[31] == '1')
