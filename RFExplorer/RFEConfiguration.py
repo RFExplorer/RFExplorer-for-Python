@@ -91,7 +91,7 @@ class RFEConfiguration:
 
     @property
     def LineString(self):
-        """Complete sting line with all configuration data
+        """Complete string line with all configuration data
 		"""
         return self.m_sLineString
     
