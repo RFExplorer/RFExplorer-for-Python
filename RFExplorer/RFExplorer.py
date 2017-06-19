@@ -1083,6 +1083,7 @@ class RFECommunicator(object):
 		"""
         bOk = True
         sValidPorts = ""
+        self.m_arrValidCP2102Ports = []
 
         try:
             self.m_arrConnectedPorts = list(serial.tools.list_ports.comports())
@@ -1530,4 +1531,4 @@ class RFECommunicator(object):
 
         except RuntimeError:
             print("Error importing RPi.GPIO!  This is probably because you need superuser privileges.  You can achieve this by using 'sudo' to run your script")
-        
+ 
