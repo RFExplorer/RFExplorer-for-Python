@@ -22,6 +22,8 @@
 #Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #=============================================================================
 
+from ctypes import c_int8
+
 class RFE6GEN_CalibrationData:
     """note this is shared with RFEGenTest
     """
@@ -412,19 +414,26 @@ class RFE6GEN_CalibrationData:
         if (not sLine):
             return sReport
 
+        if nSize < 164:
+            return sReport
+            
+        # skip leading '$q'
+        nSize -=2 
+
         #Values using 10*delta from the value delivered when compared with 30dBm.
         #For instance if value delivered for a frequency is -28.5dBm, that is a +1.5dB difference
         #therefore a 1.5*10=15 value. If the value delivered is -33.2 that is a -3.2dB difference
         #therefore a -32 value.
 
+        self.m_arrSignalGeneratorEmbeddedCalibrationActual30DBM =\
+                    [ (-30.0 + float( c_int8( ord(c) ).value ) / 10.0) for c in sLine[2:] ]
+            
         for nInd in range(nSize):
-            self.m_arrSignalGeneratorEmbeddedCalibrationActual30DBM[nInd] = -30.0 + int(sLine[nInd + 3]) / 10.0
-            if (not sLine):
-                if ((nInd % 16) == 0):
-                    sReport += '\n'
-                sReport += '{:04.1f}'.format(self.m_arrSignalGeneratorEmbeddedCalibrationActual30DBM[nInd]) 
-                if (nInd < nSize - 1):
-                    sReport += ","
+            if nInd and ((nInd % 16) == 0):
+                sReport += '\n'
+            sReport += '{:04.1f}'.format(self.m_arrSignalGeneratorEmbeddedCalibrationActual30DBM[nInd]) 
+            if (nInd < nSize - 1):
+                sReport += ","
 
         return sReport
 

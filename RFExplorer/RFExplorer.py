@@ -984,6 +984,14 @@ class RFECommunicator(object):
                             self.m_eExpansionBoardModel = RFE_Common.eModel(int(sLine[10:13]))
                             self.m_sRFExplorerFirmware = sLine[14:19]
 
+                        # RFE6GEN calibration data '$q' message
+                        elif ( (len(sLine) >= 164) and (sLine[:2] == '$q') ):
+                            sReport = self.m_RFGenCal.InitializeCal( len(sLine), sLine, "" )
+                            if ( sReport == "" ):
+                                print("Invalid calibration data!")
+                            else:
+                                print("RFE6GEN calibration data:\n" + sReport)
+
                         elif ((len(sLine) > 18) and (sLine[:18] == RFE_Common.CONST_RESETSTRING)):
                             #RF Explorer device was reset for some reason, reconfigure client based on new configuration
                             self.m_bIsResetEvent = True

@@ -132,13 +132,16 @@ class ReceiveSerialThread(threading.Thread):
                                 self.m_hQueueLock.release() 
 
                         elif (nLen > 2 and ((strReceived[1] == 'q') or (strReceived[1] == 'Q'))):
-                            # Not sure what $q responses are, but I see them on the siggen
-                            # and need to drop them to unplug the receive queue
+                            # $q responses are RFE6GEN calibration data 
                             nEndPos = strReceived.find("\r\n")
                             if (nEndPos >= 0):
+                                sNewLine = strReceived[:nEndPos]
                                 sLeftOver = strReceived[nEndPos + 2:]
                                 strReceived = sLeftOver
-                                #print("sLeftOver: " + strReceived)
+                                if nEndPos >= 164:
+                                    self.m_hQueueLock.acquire() 
+                                    self.m_objQueue.put( sNewLine )
+                                    self.m_hQueueLock.release() 
 
                         elif (nLen > 1 and (strReceived[1] == 'D')):
                             #This is dump screen data
