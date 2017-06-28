@@ -164,8 +164,7 @@ class RFEConfiguration:
                 elif (sLine[4] == 'F'):
                     #Sweep Frequency mode
                     # r'#C3-F:0221000,0020,0000100,0,0,1,00150'
-                    #       0 0      11   11      22 2 3 3    3
-                    #       4 6      34   89      67 9 1 3    8
+                    # Positions:6,14,19,27,29,31,33
                     self.fStartMHZ = int(sLine[6:13]) / 1000.0 #Note it comes in KHZ
                     self.nFreqSpectrumSteps = int(sLine[14:18])
                     self.fStepMHZ = int(sLine[19:26]) / 1000.0  #Note it comes in KHZ
@@ -177,8 +176,7 @@ class RFEConfiguration:
                 elif (sLine[4] == 'G'):
                     #Normal CW mode
                     # r'#C3-G:0432144,0432144,0020,0000100,0,0,0'
-                    #       0         1      22   22      33 3 3
-                    #       4         4      12   67      45 7 9
+                    # Positions:14,22,27,35,37,39
                     self.fRFEGenCWFreqMHZ = int(sLine[14:21]) / 1000.0  #Note it comes in KHZ
                     self.nFreqSpectrumSteps = int(sLine[22:26])
                     self.fStepMHZ = int(sLine[27:34]) / 1000.0  #Note it comes in KHZ
