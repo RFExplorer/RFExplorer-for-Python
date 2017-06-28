@@ -467,7 +467,7 @@ class RFE6GEN_CalibrationData:
         nFreqInd = 0
         if (self.m_arrSignalGeneratorEmbeddedCalibrationActual30DBM):
             #search by brute force, if this is considered too slow, can be replace by binary search or something else such a hash
-            for nInd in range(len(self.m_arrSignalGeneratorCalRanges_KHZ), 0, -1):
+            for nInd in range(len(self.m_arrSignalGeneratorCalRanges_KHZ)-1, 0, -1):
                 dStartFreqMHZ = self.m_arrSignalGeneratorCalRanges_KHZ[nInd] / 1000.0
                 if (dStartFreqMHZ <= dFrequencyMHZ):
                     nFreqInd = nInd
