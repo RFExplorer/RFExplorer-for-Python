@@ -163,9 +163,11 @@ class RFEConfiguration:
                     self.m_eMode = RFE_Common.eMode.MODE_GEN_SWEEP_AMP
                 elif (sLine[4] == 'F'):
                     #Sweep Frequency mode
-                    self.fStartMHZ = int(sLine[6:7]) / 1000.0 #Note it comes in KHZ
+                    # r'#C3-F:0221000,0020,0000100,0,0,1,00150'
+                    # Positions:6,14,19,27,29,31,33
+                    self.fStartMHZ = int(sLine[6:13]) / 1000.0 #Note it comes in KHZ
                     self.nFreqSpectrumSteps = int(sLine[14:18])
-                    self.fStepMHZ = int(sLine[19:7]) / 1000.0  #Note it comes in KHZ
+                    self.fStepMHZ = int(sLine[19:26]) / 1000.0  #Note it comes in KHZ
                     self.bRFEGenHighPowerSwitch = (sLine[27] == '1')
                     self.nRFEGenPowerLevel = int(ord(sLine[29]) - 0x30)
                     self.bRFEGenPowerON = (sLine[31] == '1')
@@ -173,6 +175,8 @@ class RFEConfiguration:
                     self.m_eMode = RFE_Common.eMode.MODE_GEN_SWEEP_FREQ
                 elif (sLine[4] == 'G'):
                     #Normal CW mode
+                    # r'#C3-G:0432144,0432144,0020,0000100,0,0,0'
+                    # Positions:14,22,27,35,37,39
                     self.fRFEGenCWFreqMHZ = int(sLine[14:21]) / 1000.0  #Note it comes in KHZ
                     self.nFreqSpectrumSteps = int(sLine[22:26])
                     self.fStepMHZ = int(sLine[27:34]) / 1000.0  #Note it comes in KHZ
