@@ -418,7 +418,7 @@ class RFE6GEN_CalibrationData:
             return sReport
             
         # skip leading '$q'
-        nSize -=2 
+        nSize -=3
 
         #Values using 10*delta from the value delivered when compared with 30dBm.
         #For instance if value delivered for a frequency is -28.5dBm, that is a +1.5dB difference
@@ -426,7 +426,7 @@ class RFE6GEN_CalibrationData:
         #therefore a -32 value.
 
         self.m_arrSignalGeneratorEmbeddedCalibrationActual30DBM =\
-                    [ (-30.0 + float( c_int8( ord(c) ).value ) / 10.0) for c in sLine[2:] ]
+                    [ (-30.0 + float( c_int8( ord(c) ).value ) / 10.0) for c in sLine[3:] ]
             
         for nInd in range(nSize):
             if nInd and ((nInd % 16) == 0):
