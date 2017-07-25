@@ -1,6 +1,11 @@
+#pylint: disable=trailing-whitespace, line-too-long, bad-whitespace, invalid-name, R0204, C0200
+#pylint: disable=superfluous-parens, missing-docstring, broad-except
+#pylint: disable=too-many-lines, too-many-instance-attributes, too-many-statements, too-many-nested-blocks
+#pylint: disable=too-many-branches, too-many-public-methods, too-many-locals, too-many-arguments
+
 #============================================================================
 #RF Explorer Python Libraries - A Spectrum Analyzer for everyone!
-#Copyright © 2010-16 Ariel Rocholl, www.rf-explorer.com
+#Copyright © 2010-17 Ariel Rocholl, www.rf-explorer.com
 #
 #This application is free software; you can redistribute it and/or
 #modify it under the terms of the GNU Lesser General Public
@@ -18,4 +23,3 @@
 #=============================================================================
 
 from RFExplorer.RFExplorer import RFECommunicator
-

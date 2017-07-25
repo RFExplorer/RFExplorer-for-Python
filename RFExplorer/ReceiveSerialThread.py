@@ -5,7 +5,7 @@
 
 #============================================================================
 #RF Explorer Python Libraries - A Spectrum Analyzer for everyone!
-#Copyright © 2010-16 Ariel Rocholl, www.rf-explorer.com
+#Copyright © 2010-17 Ariel Rocholl, www.rf-explorer.com
 #
 #This application is free software; you can redistribute it and/or
 #modify it under the terms of the GNU Lesser General Public
@@ -85,7 +85,6 @@ class ReceiveSerialThread(threading.Thread):
                 if (nLen > 1):
                     if (self.m_objRFECommunicator.VerboseLevel > 9): 
                         print(strReceived)
-                 
                     if (strReceived[0] == '#'):
                         nEndPos = strReceived.find("\r\n")
                         if (nEndPos >= 0):
@@ -110,9 +109,7 @@ class ReceiveSerialThread(threading.Thread):
                                 self.m_hQueueLock.acquire() 
                                 self.m_objQueue.put(sNewLine)
                                 self.m_hQueueLock.release() 
-
                     elif (strReceived[0] == '$'):
-
                         if (nLen > 4 and (strReceived[1] == 'C')):
                             nSize = 2 #account for cr+lf
                             #calibration data
@@ -130,10 +127,20 @@ class ReceiveSerialThread(threading.Thread):
                                 self.m_hQueueLock.acquire() 
                                 self.m_objQueue.put(sNewLine)
                                 self.m_hQueueLock.release() 
-
                         elif (nLen > 2 and ((strReceived[1] == 'q') or (strReceived[1] == 'Q'))):
-                            pass
+                            #this is internal calibration data dump
+                            nReceivedLength = ord(strReceived[2])
+                            nExtraLength = 3
+                            if (strReceived[1] == 'Q'):
+                                nReceivedLength += int(0x100 * strReceived[3])
+                                nExtraLength = 4
 
+                            bLengthOK = (len(strReceived) >= (nExtraLength + nReceivedLength + 2))
+                            if (bLengthOK):
+                                self.m_hQueueLock.acquire() 
+                                self.m_objQueue.put(strReceived)
+                                self.m_hQueueLock.release()
+                                strReceived = strReceived[(nExtraLength + nReceivedLength + 2):]
                         elif (nLen > 1 and (strReceived[1] == 'D')):
                             #This is dump screen data
                             if (self.m_objRFECommunicator.VerboseLevel > 5):
@@ -210,7 +217,6 @@ class ReceiveSerialThread(threading.Thread):
                                 nPosNextLine = strReceived.index("\r\n")
                                 if (nPosNextLine >= 0):
                                     strReceived = strReceived[nPosNextLine + 2:] 
-
                     else:
                         nEndPos = strReceived.find("\r\n")
                         if (nEndPos >= 0):

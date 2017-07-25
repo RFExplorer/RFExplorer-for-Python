@@ -743,6 +743,13 @@ class RFECommunicator(object):
     def ThresholdDBM(self, value):
         self.m_fThresholdDBM = value
 
+    @property
+    def IsMWSUB3G(self):
+        """Property true if the WSUB3G connected is actually a MWSUB3G. This enables us to work with MWSUB3G same as WSUB3G except 
+           in specific places where MWSUB3G code is required. Use this function anytime to know if a WSUB3G is actually a MWSUB3G
+        """
+        return ((self.m_eMainBoardModel == RFE_Common.eModel.MODEL_WSUB3G) and (self.m_eExpansionBoardModel == RFE_Common.eModel.MODEL_NONE))
+
     def ProcessReceivedString(self, bProcessAllEvents):
         """Processes all strings received and queued by the ReceiveThreadFunc.
 
@@ -974,6 +981,62 @@ class RFECommunicator(object):
                         elif ((len(sLine) > 16) and (sLine[:3] == "#Sn")):
                             self.m_sSerialNumber = sLine[3:19]
                             print("Device serial number: " + self.m_sSerialNumber)
+                        elif ((len(sLine) > 2) and ((sLine[:2] == "$q") or (sLine[:2] == "$Q"))):
+                            #calibration data
+                            nSourceStringSize = ord(sLine[2])
+                            if (sLine[1] == 'Q'):
+                                nSourceStringSize += int(ord(0x100 * sLine[3]))
+
+                            if (self.IsGenerator()):
+		                        #signal generator uses a different approach for storing absolute amplitude value offset over an ideal -30dBm response
+                                if ((self.m_RFGenCal.GetCalSize() < 0) or (self.m_RFGenCal.GetCalSize() != nSourceStringSize)):
+                                    sData = self.m_RFGenCal.InitializeCal(nSourceStringSize, sLine)
+                                    print("Embedded calibration Signal Generator data received: " + sData, True)
+                            elif (self.m_eActiveModel == RFE_Common.eModel.MODEL_6G or self.m_eActiveModel == RFE_Common.eModel.MODEL_WSUB1G or self.m_eActiveModel == RFE_Common.eModel.MODEL_WSUB1G_PLUS or self.IsMWSUB3G):
+                                sData = "Embedded calibration Spectrum Analyzer data received:"
+                                bAllZero = True
+                                nStartPositionCalData = 0
+                                nStopPositionCalData = nSourceStringSize
+                                if(self.m_eActiveModel == RFE_Common.eModel.MODEL_6G):
+                                    nStartPositionCalData = RFE_Common.CONST_POS_INTERNAL_CALIBRATED_6G
+                                elif(self.m_eActiveModel == RFE_Common.eModel.MODEL_WSUB1G):
+                                    nStartPositionCalData = RFE_Common.CONST_POS_INTERNAL_CALIBRATED_WSUB1G
+                                    nStopPositionCalData = RFE_Common.CONST_POS_END_INTERNAL_CALIBRATED_WSUB1G
+                                elif(self.m_eActiveModel == RFE_Common.eModel.MODEL_WSUB1G_PLUS):
+                                    nStartPositionCalData = RFE_Common.CONST_POS_INTERNAL_CALIBRATED_WSUB1G_PLUS
+                                    nStopPositionCalData = RFE_Common.CONST_POS_END_INTERNAL_CALIBRATED_WSUB1G_PLUS
+                                elif(self.m_eActiveModel == RFE_Common.eModel.MODEL_WSUB3G):
+                                    nStartPositionCalData = RFE_Common.CONST_POS_INTERNAL_CALIBRATED_MWSUB3G
+
+                                if ((self.m_arrSpectrumAnalyzerEmbeddedCalibrationOffsetDB) or (len(self.m_arrSpectrumAnalyzerEmbeddedCalibrationOffsetDB) != (nStopPositionCalData - nStartPositionCalData))):
+                                    self.m_arrSpectrumAnalyzerEmbeddedCalibrationOffsetDB = [0] * (nStopPositionCalData - nStartPositionCalData)
+                                    
+                                nAdjustSize = 3
+                                if (sLine[1] == 'Q'):
+                                    nAdjustSize = 4 #this accounts for extra byte sent in $Q for size
+                                nInd2 = 0
+                                for nInd in range(nStartPositionCalData, nStopPositionCalData):
+                                    if (((nInd2 % 16) == 0) and not(sData.endswith('\n'))):
+                                        sData += '\n'
+                                        nInd2 = 0
+                                    elif (self.IsMWSUB3G and ((nInd % 81) == 0) and not(sData.endswith('\n'))):
+                                        sData += '\n'
+                                        nInd2 = 0
+
+                                    nVal = ord(sLine[nInd + nAdjustSize])
+                                    if (nVal > 127):
+                                        nVal = -(256 - nVal)  #get the right sign
+                                    if (nVal != 0):
+                                        bAllZero = False
+                                    self.m_arrSpectrumAnalyzerEmbeddedCalibrationOffsetDB[nInd - nStartPositionCalData] = nVal / 2.0 #split by two to get dB
+                                    sData += '{:04.1f}'.format(self.m_arrSpectrumAnalyzerEmbeddedCalibrationOffsetDB[nInd - nStartPositionCalData])
+                                    if (nInd < nStopPositionCalData - 1):
+                                        sData += ","
+                                    nInd2 += 1
+                                sData += '\n'
+                                print(sData)
+                                if (bAllZero):
+                                    print("ERROR: the device internal calibration data is missing! contact support at www.rf-explorer.com/contact")
                         elif ((len(sLine) > 5) and sLine[:6] == "#C2-M:"):
                             print("Received RF Explorer device model info:" + sLine)
                             self.m_eMainBoardModel = RFE_Common.eModel(int(sLine[6:9]))
@@ -984,7 +1047,9 @@ class RFECommunicator(object):
                             self.m_eMainBoardModel = RFE_Common.eModel(int(sLine[6:9]))
                             self.m_eExpansionBoardModel = RFE_Common.eModel(int(sLine[10:13]))
                             self.m_sRFExplorerFirmware = sLine[14:19]
-
+                        elif ((len(sLine) > 6) and sLine[:5] == "#CAL:"):
+                            self.m_bMainboardInternalCalibrationAvailable = (sLine[5] == '1')
+                            self.m_bExpansionBoardInternalCalibrationAvailable = (sLine[6] == '1')
                         elif ((len(sLine) > 18) and (sLine[:18] == RFE_Common.CONST_RESETSTRING)):
                             #RF Explorer device was reset for some reason, reconfigure client based on new configuration
                             self.m_bIsResetEvent = True
@@ -1010,7 +1075,21 @@ class RFECommunicator(object):
                 print("ProcessReceivedString: " + str(obEx))
 
         return bDraw, sReceivedString
-    
+            
+    def IsAnalyzerEmbeddedCal(self):
+        """ As a function of expansion or mainboard being currently selected, returns true if there is internal
+        calibration data available, or false if not.
+        IMPORTANT: the calibration data is not returned immediately after connection and that may make think
+        the calibration is not available. 
+            
+        Returns:
+            True if calibration is embedded, otherwise false
+        """
+        if (self.ExpansionBoardActive):
+            return self.m_bExpansionBoardInternalCalibrationAvailable
+        else:
+            return self.m_bMainboardInternalCalibrationAvailable
+
     def SendCommand_Realtime(self):
         """Set RF Explorer SA devince in Calculator:Normal, this is useful to
         minimize spikes and spurs produced by unwanted signals

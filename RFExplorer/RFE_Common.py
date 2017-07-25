@@ -5,7 +5,7 @@
 
 #============================================================================
 #RF Explorer Python Libraries - A Spectrum Analyzer for everyone!
-#Copyright © 2010-16 Ariel Rocholl, www.rf-explorer.com
+#Copyright © 2010-17 Ariel Rocholl, www.rf-explorer.com
 #
 #This application is free software; you can redistribute it and/or
 #modify it under the terms of the GNU Lesser General Public
@@ -39,6 +39,13 @@ CONST_RFGEN_MAX_FREQ_MHZ = 6000
 
 CONST_RESETSTRING = "(C) Ariel Rocholl "
 
+CONST_POS_INTERNAL_CALIBRATED_6G = 134  #start position for 6G model
+CONST_POS_INTERNAL_CALIBRATED_MWSUB3G = 0  #start position for MWSUB3G model
+CONST_POS_INTERNAL_CALIBRATED_WSUB1G = 15  #start position for WSUB1G model
+CONST_POS_END_INTERNAL_CALIBRATED_WSUB1G = 58   #end position for WSUB1G, that is, POS_INTERNAL_CALIBRATED_WSUB1G = 15 + WSUB1G calibration data size = 43
+CONST_POS_INTERNAL_CALIBRATED_WSUB1G_PLUS = 0   #start position for WSUB1G+ model
+CONST_POS_END_INTERNAL_CALIBRATED_WSUB1G_PLUS = 258 #end position for WSUB1G+, that is, POS_INTERNAL_CALIBRATED_WSUB1G_PLUS = 0 + WSUB1G calibration data size = 258 ((R1+R2+R3)86 x 3)
+
 #---------------------------------------------------------
 
 class eModel(Enum): 
@@ -51,6 +58,7 @@ class eModel(Enum):
     MODEL_2400 = 4
     MODEL_WSUB3G = 5
     MODEL_6G = 6
+    MODEL_WSUB1G_PLUS = 10
     MODEL_RFGEN = 60
     MODEL_NONE = 0xFF
 

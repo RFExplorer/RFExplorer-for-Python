@@ -1,12 +1,14 @@
 #pylint: disable=trailing-whitespace, line-too-long, bad-whitespace, invalid-name, R0204, C0200
-#pylint: disable=superfluous-parens, missing-docstring, broad-except
+#pylint: disable=superfluous-parens, missing-docstring, broad-except, R0801
 #pylint: disable=too-many-lines, too-many-instance-attributes, too-many-statements, too-many-nested-blocks
 #pylint: disable=too-many-branches, too-many-public-methods, too-many-locals, too-many-arguments
 
-#============================================================================
+#======================================================================================
 #This is an example code for RFExplorer python functionality. 
 #Display amplitude in dBm and frequency in MHz of the maximum value of frequency range.
-#============================================================================
+#In order to avoid USB issues, connect only RF Explorer Spectrum Analyzer to run this example
+#It is not suggested to connect RF Explorer Signal Generator at the same time
+#======================================================================================
 
 import time
 import RFExplorer
@@ -15,57 +17,57 @@ import RFExplorer
 # Helper functions
 #---------------------------------------------------------
 
-def PrintPeak(objRFE):
+def PrintPeak(objAnalazyer):
     """This function prints the amplitude and frequency peak of the latest received sweep
     """
-    nInd = objRFE.SweepData.Count-1
-    objSweepTemp = objRFE.SweepData.GetData(nInd)
+    nIndex = objAnalazyer.SweepData.Count-1
+    objSweepTemp = objAnalazyer.SweepData.GetData(nIndex)
     nStep = objSweepTemp.GetPeakStep()      #Get index of the peak
     fAmplitudeDBM = objSweepTemp.GetAmplitude_DBM(nStep)    #Get amplitude of the peak
     fCenterFreq = objSweepTemp.GetFrequencyMHZ(nStep)   #Get frequency of the peak
 
     print("Peak: " + "{0:.3f}".format(fCenterFreq) + "MHz  " + str(fAmplitudeDBM) + "dBm")
 
-def ControlSettings(objRFE):
+def ControlSettings(objAnalazyer):
     """This functions check user settings 
     """
-    SpanSize = None
-    StartFreq = None
-    StopFreq =  None
+    SpanSizeTemp = None
+    StartFreqTemp = None
+    StopFreqTemp =  None
 
     #print user settings
     print("User settings:" + "Span: " + str(SPAN_SIZE_MHZ) +"MHz"+  " - " + "Start freq: " + str(START_SCAN_MHZ) +"MHz"+" - " + "Stop freq: " + str(STOP_SCAN_MHZ) + "MHz")
 
     #Control maximum Span size
-    if(objRFE.MaxSpanMHZ <= SPAN_SIZE_MHZ):
-        print("Max Span size: " + str(objRFE.MaxSpanMHZ)+"MHz")
+    if(objAnalazyer.MaxSpanMHZ <= SPAN_SIZE_MHZ):
+        print("Max Span size: " + str(objAnalazyer.MaxSpanMHZ)+"MHz")
     else:
-        objRFE.SpanMHZ = SPAN_SIZE_MHZ
-        SpanSize = objRFE.SpanMHZ
-    if(SpanSize):
+        objAnalazyer.SpanMHZ = SPAN_SIZE_MHZ
+        SpanSizeTemp = objAnalazyer.SpanMHZ
+    if(SpanSizeTemp):
         #Control minimum start frequency
-        if(objRFE.MinFreqMHZ > START_SCAN_MHZ):
-            print("Min Start freq: " + str(objRFE.MinFreqMHZ)+"MHz")
+        if(objAnalazyer.MinFreqMHZ > START_SCAN_MHZ):
+            print("Min Start freq: " + str(objAnalazyer.MinFreqMHZ)+"MHz")
         else:
-            objRFE.StartFrequencyMHZ = START_SCAN_MHZ
-            StartFreq = objRFE.StartFrequencyMHZ    
-        if(StartFreq):
+            objAnalazyer.StartFrequencyMHZ = START_SCAN_MHZ
+            StartFreqTemp = objAnalazyer.StartFrequencyMHZ    
+        if(StartFreqTemp):
             #Control maximum stop frequency
-            if(objRFE.MaxFreqMHZ < STOP_SCAN_MHZ):
-                print("Max Start freq: " + str(objRFE.MaxFreqMHZ)+"MHz")
+            if(objAnalazyer.MaxFreqMHZ < STOP_SCAN_MHZ):
+                print("Max Start freq: " + str(objAnalazyer.MaxFreqMHZ)+"MHz")
             else:
-                if((StartFreq + SpanSize) > STOP_SCAN_MHZ):
+                if((StartFreqTemp + SpanSizeTemp) > STOP_SCAN_MHZ):
                     print("Max Stop freq (START_SCAN_MHZ + SPAN_SIZE_MHZ): " + str(STOP_SCAN_MHZ) +"MHz")
                 else:
-                    StopFreq = (StartFreq + SpanSize)
+                    StopFreqTemp = (StartFreqTemp + SpanSizeTemp)
     
-    return SpanSize, StartFreq, StopFreq
+    return SpanSizeTemp, StartFreqTemp, StopFreqTemp
 
 #---------------------------------------------------------
 # global variables and initialization
 #---------------------------------------------------------
 
-SERIALPORT = None    #serial port identifier, use None to autodetect
+SERIALPORT = None    #serial port data  
 BAUDRATE = 500000
 
 objRFE = RFExplorer.RFECommunicator()     #Initialize object and thread
@@ -132,7 +134,7 @@ try:
 
                         #Wait for new configuration to arrive (as it will clean up old sweep data)
                         objSweep=None
-                        while (objSweep==None or objSweep.StartFrequencyMHZ!=StartFreq):
+                        while ((objSweep is None) or objSweep.StartFrequencyMHZ!=StartFreq):
                             objRFE.ProcessReceivedString(True)
                             if (objRFE.SweepData.Count>0):
                                 objSweep=objRFE.SweepData.GetData(objRFE.SweepData.Count-1)

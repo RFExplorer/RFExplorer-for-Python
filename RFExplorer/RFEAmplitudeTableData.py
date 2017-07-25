@@ -5,7 +5,7 @@
 
 #============================================================================
 #RF Explorer Python Libraries - A Spectrum Analyzer for everyone!
-#Copyright © 2010-16 Ariel Rocholl, www.rf-explorer.com
+#Copyright © 2010-17 Ariel Rocholl, www.rf-explorer.com
 #
 #This application is free software; you can redistribute it and/or
 #modify it under the terms of the GNU Lesser General Public
@@ -74,7 +74,7 @@ class RFEAmplitudeTableData:
 		"""
         self.m_sCalibrationID = ""
         self.m_bHasCalibrationData = False
-        for nInd in range(len(self.m_arrAmplitudeCalibrationDataDB)):
+        for nInd in range(len(self.m_arrAmplitudeCalibrationDataDB) - 1):
             self.m_arrAmplitudeCalibrationDataDB[nInd] = self.CONST_INVALID_DATA
             self.m_arrCompressionDataDBM[nInd] = self.CONST_INVALID_DATA
 
@@ -115,7 +115,7 @@ class RFEAmplitudeTableData:
         fAmplitude1 = fAmplitude2 = self.CONST_INVALID_DATA  #the two amplitude values to iterate in order to adjust intermediate values
         nAmplitude1Ind = nAmplitude2Ind = -1 #Index used to know the position of the two amplitudes
 
-        for nInd in range(len(arrAmplitudeData)):
+        for nInd in range(len(arrAmplitudeData)-1):
             fVal = arrAmplitudeData[nInd]
 
             if (fAmplitude1 == self.CONST_INVALID_DATA):
@@ -177,7 +177,7 @@ class RFEAmplitudeTableData:
         go copying the same value over and over till it find another valid one. See NormalizeDataPredict for alternative
 		"""
         fLastAmplitude = self.CONST_DEFAULT_AMPLITUDE_CORRECTION
-        for nInd in range(len(self.m_arrAmplitudeCalibrationDataDB)):
+        for nInd in range(len(self.m_arrAmplitudeCalibrationDataDB)-1):
             fVal = self.m_arrAmplitudeCalibrationDataDB[nInd]
             if (fVal == self.CONST_INVALID_DATA):
                 self.m_arrAmplitudeCalibrationDataDB[nInd] = fLastAmplitude

@@ -1,14 +1,15 @@
 #pylint: disable=trailing-whitespace, line-too-long, bad-whitespace, invalid-name, R0204, C0200
-#pylint: disable=superfluous-parens, missing-docstring, broad-except
+#pylint: disable=superfluous-parens, missing-docstring, broad-except, R0801
 #pylint: disable=too-many-lines, too-many-instance-attributes, too-many-statements, too-many-nested-blocks
 #pylint: disable=too-many-branches, too-many-public-methods, too-many-locals, too-many-arguments
 
-#============================================================================
+#=======================================================================================
 #This is an example code for RFExplorer python functionality. 
 #Display amplitude value in dBm and frequency in MHz of the maximum value of sweep data.
 #The number of stored sweep data can be configurated by time
-#Please check details at https://github.com/RFExplorer/RFExplorer-for-Python/wiki/Python-Example-IoT-1
-#============================================================================
+#In order to avoid USB issues, connect only RF Explorer Spectrum Analyzer to run this example
+#It is not suggested to connect RF Explorer Signal Generator at the same time
+#=======================================================================================
 
 import time
 from datetime import datetime, timedelta
@@ -18,23 +19,23 @@ import RFExplorer
 # Helper functions
 #---------------------------------------------------------
 
-def PrintPeak(objRFE):
+def PrintPeak(objAnalazyer):
     """This function prints the amplitude and frequency peak of the latest received sweep
 	"""
-    nInd = objRFE.SweepData.Count-1
-    objSweepTemp = objRFE.SweepData.GetData(nInd)
+    nIndex = objAnalazyer.SweepData.Count-1
+    objSweepTemp = objAnalazyer.SweepData.GetData(nIndex)
     nStep = objSweepTemp.GetPeakStep()      #Get index of the peak
     fAmplitudeDBM = objSweepTemp.GetAmplitude_DBM(nStep)    #Get amplitude of the peak
     fCenterFreq = objSweepTemp.GetFrequencyMHZ(nStep)   #Get frequency of the peak
 
-    print("Sweep[" + str(nInd)+"]: Peak: " + "{0:.3f}".format(fCenterFreq) + "MHz  " + str(fAmplitudeDBM) + "dBm")
+    print("Sweep[" + str(nIndex)+"]: Peak: " + "{0:.3f}".format(fCenterFreq) + "MHz  " + str(fAmplitudeDBM) + "dBm")
 
 #---------------------------------------------------------
 # global variables and initialization
 #---------------------------------------------------------
 
-SERIALPORT = None    #serial port identifier, use None to autodetect
-BAUDRATE = 500000    
+SERIALPORT = None    #serial port data 
+BAUDRATE = 500000
 
 objRFE = RFExplorer.RFECommunicator()     #Initialize object and thread
 TOTAL_SECONDS = 10           #Initialize time span to display activity
