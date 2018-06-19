@@ -5,7 +5,7 @@
 
 #============================================================================
 #RF Explorer Python Libraries - A Spectrum Analyzer for everyone!
-#Copyright © 2010-17 Ariel Rocholl, www.rf-explorer.com
+#Copyright © 2010-18 Ariel Rocholl, www.rf-explorer.com
 #
 #This application is free software; you can redistribute it and/or
 #modify it under the terms of the GNU Lesser General Public
@@ -158,7 +158,7 @@ class ReceiveSerialThread(threading.Thread):
                                 nReceivedLength *= 16
                             elif (strReceived[1] == 'z'):
                                 nReceivedLength *= 256
-                                nReceivedLength += int(strReceived[3])
+                                nReceivedLength += ord(strReceived[3])
                                 nSizeChars+=1
                             if (self.m_objRFECommunicator.VerboseLevel > 9):
                                 print("Spectrum data: " + str(nReceivedLength) + " " + str(nLen))

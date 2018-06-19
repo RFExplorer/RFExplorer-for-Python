@@ -5,7 +5,7 @@
 
 #============================================================================
 #RF Explorer Python Libraries - A Spectrum Analyzer for everyone!
-#Copyright © 2010-17 Ariel Rocholl, www.rf-explorer.com
+#Copyright © 2010-18 Ariel Rocholl, www.rf-explorer.com
 #
 # Contributed by:
 # 
@@ -128,6 +128,7 @@ g_arrModels[RFE_Common.eModel.MODEL_WSUB1G.value] = "WSUB1G"
 g_arrModels[RFE_Common.eModel.MODEL_2400.value] = "2.4G"
 g_arrModels[RFE_Common.eModel.MODEL_WSUB3G.value] = "WSUB3G"
 g_arrModels[RFE_Common.eModel.MODEL_6G.value] = "6G"
+g_arrModels[RFE_Common.eModel.MODEL_WSUB1G_PLUS.value] = "WSUB1G_PLUS";
 g_arrModels[RFE_Common.eModel.MODEL_RFGEN.value] = "RFE6GEN"
 g_arrModels[RFE_Common.eModel.MODEL_NONE.value] = "NONE"
 
@@ -145,7 +146,7 @@ def GetModelEnumFromText(sText):
     """Returns model enumerator based on text provided
 
     Parameters:
-        sText -- One of "433M", "868M", "915M", "WSUB1G", "2.4G", "WSUB3G", "6G"
+        sText -- One of "433M", "868M", "915M", "WSUB1G", "2.4G", "WSUB3G", "6G", "WSUB1G_PLUS" or "RFE6GEN"
     Returns:
         RFE_Common.eModel Valid model enumerator or will set to MODEL_NONE if not found
 	"""
@@ -1488,7 +1489,7 @@ class RFECommunicator(object):
         Parameters:
             nDataPoints -- A value in the range of 16-4096, note a value multiple of 16 will be used, so any other number will be truncated to nearest 16 multiple
 		"""
-        self.SendCommand("CJ" + chr(int(nDataPoints / 16)))
+        self.SendCommand("CJ" + chr(int((nDataPoints - 16)/ 16)))
 
     def SendCommand(self, sCommand):
         """Format and send command - for instance to reboot just use "r", the '#' decorator and byte length char will be included within
