@@ -5,7 +5,7 @@
 
 #============================================================================
 #RF Explorer Python Libraries - A Spectrum Analyzer for everyone!
-#Copyright © 2010-18 Ariel Rocholl, www.rf-explorer.com
+#Copyright © 2010-20 Ariel Rocholl, www.rf-explorer.com
 #
 # Contributed by:
 # 
@@ -34,6 +34,7 @@ import math
 from datetime import datetime, timedelta
 import serial.tools.list_ports
 import serial
+import platform
 
 #---------------------------------------------------------
 
@@ -1174,11 +1175,21 @@ class RFECommunicator(object):
                 for objPort in self.m_arrConnectedPorts:
                     print("  * " + objPort.device)
 
+                sSystem = platform.system()
+                print("Detected OS: " + sSystem)
                 for objPort in self.m_arrConnectedPorts:
                     if(self.IsConnectedPort(objPort.device)):
-                        self.m_arrValidCP2102Ports.append(objPort)
-                        print(objPort.device + " is a valid available port.")
-                        sValidPorts += objPort.device + " "
+                        if(sSystem == "Darwin"):
+                            #MAC OS. In macOS we limit valid ports to those using the SILABS driver
+                           if ("SLAB_USB" in objPort.device):
+                                self.m_arrValidCP2102Ports.append(objPort)
+                                print(objPort.device + " is a valid available port.")
+                                sValidPorts += objPort.device + " "
+                        else:
+                            #Windows, Linux, etc. Autodectect function is not working with virtual serial port.
+                            self.m_arrValidCP2102Ports.append(objPort)
+                            print(objPort.device + " is a valid available port.")
+                            sValidPorts += objPort.device + " "
                 
                 if(len(self.m_arrValidCP2102Ports) > 0):
                     print("RF Explorer Valid Ports found: " + str(len(self.m_arrValidCP2102Ports)) + " - " + sValidPorts)
