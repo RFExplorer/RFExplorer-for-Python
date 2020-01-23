@@ -1,3 +1,7 @@
+#=======================================================================================
+#This is an example code for RFExplorer python functionality.
+#Contributed by https://github.com/xiaolu1990 - check with author for support
+#=======================================================================================
 #try:
 #    while True:
 #        input_value = input("please enter [G] for next step, [Q] for quit: ")
@@ -32,13 +36,13 @@ def PrintPeak(objAnalazyer):
     fCenterFreq = objSweepTemp.GetFrequencyMHZ(nStep)   #Get frequency of the peak
 
     print("Sweep[" + str(nIndex)+"]: Peak: " + "{0:.3f}".format(fCenterFreq) + "MHz  " + str(fAmplitudeDBM) + "dBm")
-    
+
     return fAmplitudeDBM
 #---------------------------------------------------------
 # global variables and initialization
 #---------------------------------------------------------
 
-SERIALPORT = None    #serial port identifier, use None to autodetect 
+SERIALPORT = None    #serial port identifier, use None to autodetect
 BAUDRATE = 500000
 
 objRFE = RFExplorer.RFECommunicator()     #Initialize object and thread
@@ -51,9 +55,8 @@ TOTAL_SECONDS = 5           #Initialize time span to display activity
 
 try:
     #Find and show valid serial ports
-    objRFE.GetConnectedPorts()    
-    
-   
+    objRFE.GetConnectedPorts()
+
     #Connect to available port
     if (objRFE.ConnectPort(SERIALPORT, BAUDRATE)):
         #Reset the unit to start fresh
@@ -75,15 +78,15 @@ try:
             sample_value = []
             objRFE.ResetInternalBuffers()
             input_value = input("please enter [G] for next step, [Q] for quit: ")
-            if input_value == "G":             
+            if input_value == "G":
         #If object is an analyzer, we can scan for received sweeps
-                if (objRFE.IsAnalyzer()):     
+                if (objRFE.IsAnalyzer()):
                     print("Receiving data...")
                     #Process until we complete scan time
                     nLastDisplayIndex=0
                     startTime=datetime.now()
-                    while ((datetime.now() - startTime).seconds<TOTAL_SECONDS):    
-                        #Process all received data from device 
+                    while ((datetime.now() - startTime).seconds<TOTAL_SECONDS):
+                        #Process all received data from device
                         objRFE.ProcessReceivedString(True)
                         #Print data if received new sweep only
                         if (objRFE.SweepData.Count>nLastDisplayIndex):
@@ -108,4 +111,4 @@ except Exception as obEx:
 #---------------------------------------------------------
 
 #objRFE.Close()    #Finish the thread and close port
-objRFE = None 
+objRFE = None
