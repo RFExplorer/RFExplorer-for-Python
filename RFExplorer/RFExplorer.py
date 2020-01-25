@@ -1509,7 +1509,7 @@ class RFECommunicator(object):
             sCommand -- Unformatted command from http://www.rf-explorer.com/API
 		"""
         sCompleteCommand = "#" + chr(len(sCommand) + 2) + sCommand
-        self.m_objSerialPort.write(sCompleteCommand.encode('utf-8'))
+        self.m_objSerialPort.write(sCompleteCommand.encode('latin1'))
         if self.m_nVerboseLevel>5:
             print("RFE Command: #(" + str(len(sCompleteCommand)) + ")" + sCommand + " [" + " ".join("{:02X}".format(ord(c)) for c in sCompleteCommand) + "]")
     
