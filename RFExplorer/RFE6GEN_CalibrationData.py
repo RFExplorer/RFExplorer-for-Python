@@ -5,7 +5,7 @@
 
 #============================================================================
 #RF Explorer Python Libraries - A Spectrum Analyzer for everyone!
-#Copyright © 2010-20 Ariel Rocholl, www.rf-explorer.com
+#Copyright © 2010-21 RF Explorer Technologies SL, www.rf-explorer.com
 #
 #This application is free software; you can redistribute it and/or
 #modify it under the terms of the GNU Lesser General Public
@@ -417,7 +417,7 @@ class RFE6GEN_CalibrationData:
         #therefore a -32 value.
 
         for nInd in range(nSize):
-            self.m_arrSignalGeneratorEmbeddedCalibrationActual30DBM[nInd] = -30.0 + ord(sLine[nInd + 3]) / 10.0
+            self.m_arrSignalGeneratorEmbeddedCalibrationActual30DBM[nInd] = -30.0 + int(ord(sLine[nInd + 3])) / 10.0
             if ((nInd % 16) == 0):
                 sReport += '\n'
             sReport += '{:04.1f}'.format(self.m_arrSignalGeneratorEmbeddedCalibrationActual30DBM[nInd]) 

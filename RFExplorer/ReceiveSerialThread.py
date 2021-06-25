@@ -5,7 +5,7 @@
 
 #============================================================================
 #RF Explorer Python Libraries - A Spectrum Analyzer for everyone!
-#Copyright © 2010-20 Ariel Rocholl, www.rf-explorer.com
+#Copyright © 2010-21 RF Explorer Technologies SL, www.rf-explorer.com
 #
 #This application is free software; you can redistribute it and/or
 #modify it under the terms of the GNU Lesser General Public
@@ -72,14 +72,14 @@ class ReceiveSerialThread(threading.Thread):
                 finally:
                     self.m_hSerialPortLock.release()
                 if (len(sNewText) > 0):
-                    if(self.m_objRFECommunicator.VerboseLevel > 5):
-                        print(sNewText) 
                     strReceived += str(sNewText)
+                    if(self.m_objRFECommunicator.VerboseLevel > 9):
+                        print(strReceived.encode('utf-8')) 
                     sNewText = ""
                 if (len(strReceived) > 66*1024):
                     #Safety code, some error prevented the string from being processed in several loop cycles.Reset it.
                     if(self.m_objRFECommunicator.VerboseLevel > 5):
-                        print("Received string truncated (" + len(strReceived) + ")")
+                        print("Received string truncated (" + strReceived + ")")
                     strReceived = ""
                 nLen = len(strReceived)
                 if (nLen > 1):
@@ -93,9 +93,9 @@ class ReceiveSerialThread(threading.Thread):
                             strReceived = sLeftOver
                             #print(sNewLine)
 
-                            if ((len(sNewLine) > 5) and ((sNewLine[:6] == "#C2-F:") or ((sNewLine[:4] == "#C3-") and (sNewLine[4] != 'M'))) or sNewLine.startswith("#C4-F:")):
+                            if ((len(sNewLine) > 5) and ((sNewLine[:6] == "#C2-F:") or sNewLine.startswith("#C2-f:") or (sNewLine[:4] == "#C3-") and (sNewLine[4] != 'M') or sNewLine.startswith("#C4-F:")) or sNewLine.startswith("#C5-")):
                                 if (self.m_objRFECommunicator.VerboseLevel > 5):
-                                    print("Received Config:" + str(len(strReceived)))
+                                    print("Received Config:" + sNewLine)
 
                                 #Standard configuration expected
                                 objNewConfiguration = RFEConfiguration(None)
@@ -113,10 +113,10 @@ class ReceiveSerialThread(threading.Thread):
                         if (nLen > 4 and (strReceived[1] == 'C')):
                             nSize = 2 #account for cr+lf
                             #calibration data
-                            if (strReceived[2] == 'c'): 
-                                nSize+=int(strReceived[3]) + 4
+                            if (strReceived[2] == 'c') or (strReceived[2] == 'd'): 
+                                nSize+=int(ord(strReceived[3])) + 4
                             elif (strReceived[2] == 'b'): 
-                                nSize+=(int(strReceived[4]) + 1) * 16 + 10
+                                nSize+=(int(ord(strReceived[4])) + 1) * 16 + 10
                             if (nSize > 2 and nLen >= nSize):
                                 nEndPos = strReceived.find("\r\n")
                                 sNewLine = strReceived[:nEndPos]
@@ -129,7 +129,7 @@ class ReceiveSerialThread(threading.Thread):
                                 self.m_hQueueLock.release() 
                         elif (nLen > 2 and ((strReceived[1] == 'q') or (strReceived[1] == 'Q'))):
                             #this is internal calibration data dump
-                            nReceivedLength = ord(strReceived[2])
+                            nReceivedLength = int(ord(strReceived[2]))
                             nExtraLength = 3
                             if (strReceived[1] == 'Q'):
                                 nReceivedLength += int(0x100 * strReceived[3])
@@ -148,9 +148,9 @@ class ReceiveSerialThread(threading.Thread):
 
                             if (len(strReceived) >= (4 + 128 * 8)):
                                 pass 
-                        elif (nLen > 2 and ((strReceived[1] == "S") or (strReceived[1] == 's') or (strReceived[1] == 'z'))):
+                        elif (nLen > 3 and ((strReceived[1] == "S") or (strReceived[1] == 's') or (strReceived[1] == 'z'))):
                             #Standard spectrum analyzer data
-                            nReceivedLength = ord(strReceived[2])
+                            nReceivedLength = int(ord(strReceived[2]))
                             nSizeChars = 3
                             if (strReceived[1] == 's'):
                                 if (nReceivedLength == 0):
@@ -158,7 +158,7 @@ class ReceiveSerialThread(threading.Thread):
                                 nReceivedLength *= 16
                             elif (strReceived[1] == 'z'):
                                 nReceivedLength *= 256
-                                nReceivedLength += ord(strReceived[3])
+                                nReceivedLength += int(ord(strReceived[3]))
                                 nSizeChars+=1
                             if (self.m_objRFECommunicator.VerboseLevel > 9):
                                 print("Spectrum data: " + str(nReceivedLength) + " " + str(nLen))
@@ -166,9 +166,21 @@ class ReceiveSerialThread(threading.Thread):
                             bFullStringOK = False
                             if (bLengthOK): ## Ok if data length are ok and end of line('\r\n') is in the correct place
                                             ## (at the end).  Prevents corrupted data
-                                bFullStringOK = bLengthOK and (ord(strReceived[nSizeChars + nReceivedLength:][0]) == ord('\r')) and (ord(strReceived[nSizeChars + nReceivedLength:][1]) == ord('\n'))
+                                bFullStringOK = (ord(strReceived[nSizeChars + nReceivedLength:][0]) == ord('\r')) and (ord(strReceived[nSizeChars + nReceivedLength:][1]) == ord('\n'))
                             if (self.m_objRFECommunicator.VerboseLevel > 9):
                                 print("bLengthOK " + str(bLengthOK) + "bFullStringOK " + str(bFullStringOK) + " " + str(ord(strReceived[nSizeChars + nReceivedLength:][1])) + " - " + strReceived[nSizeChars + nReceivedLength:])
+                            
+                            bEEOT = False
+                            if (bLengthOK==False or ((bLengthOK==True) and (bFullStringOK == False))):
+                                #Check if not all bytes were received but EEOT is detected.
+                                nIndexEEOT = strReceived.find(RFE_Common.CONST_EEOT) 
+                                if (nIndexEEOT != -1):
+                                    bEEOT = True
+                                    if (self.m_objRFECommunicator.VerboseLevel > 9):
+                                        print("EEOT detected")
+                                    #If EEOT detected, remove from received string so we ignore the partially received data
+                                    strReceived = strReceived[(nIndexEEOT + len(RFE_Common.CONST_EEOT)):]
+
                             if (bFullStringOK):
                                 nTotalSpectrumDataDumps+=1
                                 if (self.m_objRFECommunicator.VerboseLevel > 9):
@@ -180,17 +192,21 @@ class ReceiveSerialThread(threading.Thread):
                                     if (self.m_objRFECommunicator.VerboseLevel > 9):
                                         print("New line:\n" + " [" + "".join("{:02X}".format(ord(c)) for c in sNewLine) + "]")
                                     if (self.m_objCurrentConfiguration):
-                                        nSweepSteps = self.m_objCurrentConfiguration.nFreqSpectrumSteps
-                                        objSweep = RFESweepData(self.m_objCurrentConfiguration.fStartMHZ, self.m_objCurrentConfiguration.fStepMHZ, nSweepSteps)
-                                        if (objSweep.ProcessReceivedString(sNewLine, self.m_objCurrentConfiguration.fOffset_dB, self.m_objRFECommunicator.UseByteBLOB, self.m_objRFECommunicator.UseStringBLOB)):
+                                        nSweepDataPoints = self.m_objCurrentConfiguration.FreqSpectrumSteps + 1
+                                        objSweep = RFESweepData(self.m_objCurrentConfiguration.fStartMHZ, self.m_objCurrentConfiguration.fStepMHZ, nSweepDataPoints)
+                                        nInputStageOffset = 0
+                                        #IoT module calculate this offset internally, this avoid add offset twice if is IoT (MWSUB3G), same as 2.4G+
+                                        if ((self.m_objRFECommunicator.InputStage != RFE_Common.eInputStage.Direct) and self.m_objRFECommunicator.IsAnalyzerEmbeddedCal() and (self.m_objRFECommunicator.IsMWSUB3G == False) and (self.m_objRFECommunicator.ActiveModel != RFE_Common.eModel.MODEL_2400_PLUS)):
+                                                nInputStageOffset = int(self.m_objRFECommunicator.InputStageAttenuationDB)                                  
+                                        if (objSweep.ProcessReceivedString(sNewLine, (self.m_objCurrentConfiguration.fOffset_dB + nInputStageOffset), self.m_objRFECommunicator.UseByteBLOB, self.m_objRFECommunicator.UseStringBLOB)):
                                             if (self.m_objRFECommunicator.VerboseLevel > 5):
                                                 print(objSweep.Dump())
-                                            if (nSweepSteps > 5): #check this is not an incomplete scan (perhaps from a stopped SNA tracking step)
+                                            if (nSweepDataPoints > 5): #check this is not an incomplete scan (perhaps from a stopped SNA tracking step)
                                                 #Normal spectrum analyzer sweep data
                                                 self.m_hQueueLock.acquire() 
                                                 self.m_objQueue.put(objSweep)
                                                 self.m_hQueueLock.release()
-                                        else:
+                                        elif (self.m_objRFECommunicator.VerboseLevel > 5):  
                                             self.m_hQueueLock.acquire() 
                                             self.m_objQueue.put(sNewLine)
                                             self.m_hQueueLock.release()
@@ -199,7 +215,7 @@ class ReceiveSerialThread(threading.Thread):
                                             print("Configuration not available yet. $S string ignored.")
                                 else:
                                     self.m_hQueueLock.acquire() 
-                                    self.m_objQueue.put("Ignored $S of size " + str(nReceivedLength) + " expected " + str(self.m_objCurrentConfiguration.nFreqSpectrumSteps))
+                                    self.m_objQueue.put("Ignored $S of size " + str(nReceivedLength) + " expected " + str(self.m_objCurrentConfiguration.FreqSpectrumSteps))
                                     self.m_hQueueLock.release()
                                 strReceived = strReceived[(nSizeChars + nReceivedLength + 2):]
                                 if (self.m_objRFECommunicator.VerboseLevel > 5):
@@ -209,14 +225,18 @@ class ReceiveSerialThread(threading.Thread):
                                         nLength = 10
                                     if (nLength > 0):
                                         sText += strReceived[:nLength]
-                                    print(sText)
-                            elif (bLengthOK):
+                                    print(sText.encode('utf-8'))
+                            elif (bLengthOK and bEEOT == False):
                                 #So we are here because the string doesn't end with the expected chars, but has the right length.
                                 #The most likely cause is a truncated string was received, and some chars are from next string, not
                                 #this one therefore we truncate the line to avoid being much larger, and start over again next time.
                                 nPosNextLine = strReceived.index("\r\n")
                                 if (nPosNextLine >= 0):
                                     strReceived = strReceived[nPosNextLine + 2:] 
+                            elif (bEEOT == False):
+                                if (self.m_objRFECommunicator.VerboseLevel > 9):
+                                    print("incomplete sweep")
+                                pass
                     else:
                         nEndPos = strReceived.find("\r\n")
                         if (nEndPos >= 0):

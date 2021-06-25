@@ -14,6 +14,8 @@
 import time
 from datetime import datetime, timedelta
 import RFExplorer
+from RFExplorer import RFE_Common 
+import math
 
 #---------------------------------------------------------
 # Helper functions
@@ -24,9 +26,10 @@ def PrintPeak(objAnalazyer):
 	"""
     nIndex = objAnalazyer.SweepData.Count-1
     objSweepTemp = objAnalazyer.SweepData.GetData(nIndex)
-    nStep = objSweepTemp.GetPeakStep()      #Get index of the peak
+    nStep = objSweepTemp.GetPeakDataPoint()      #Get index of the peak
     fAmplitudeDBM = objSweepTemp.GetAmplitude_DBM(nStep)    #Get amplitude of the peak
     fCenterFreq = objSweepTemp.GetFrequencyMHZ(nStep)   #Get frequency of the peak
+    fCenterFreq = math.floor(fCenterFreq * 10 ** 3) / 10 ** 3   #truncate to 3 decimals
 
     print("Sweep[" + str(nIndex)+"]: Peak: " + "{0:.3f}".format(fCenterFreq) + "MHz  " + str(fAmplitudeDBM) + "dBm")
 
@@ -50,13 +53,14 @@ try:
 
     #Connect to available port
     if (objRFE.ConnectPort(SERIALPORT, BAUDRATE)):
+        print("Reseting device...")   
         #Reset the unit to start fresh
         objRFE.SendCommand("r")
         #Wait for unit to notify reset completed
         while(objRFE.IsResetEvent):
             pass
         #Wait for unit to stabilize
-        time.sleep(3)
+        time.sleep(8)
 
         #Request RF Explorer configuration
         objRFE.SendCommand_RequestConfigData()
@@ -65,8 +69,10 @@ try:
             objRFE.ProcessReceivedString(True)    #Process the received configuration
 
         #If object is an analyzer, we can scan for received sweeps
-        if (objRFE.IsAnalyzer()):     
+        if (objRFE.IsAnalyzer()):  
+            print("---- Spectrum Analyzer Example ----")   
             print("Receiving data...")
+            objRFE.SweepData.CleanAll()
             #Process until we complete scan time
             nLastDisplayIndex=0
             startTime=datetime.now()
@@ -78,7 +84,21 @@ try:
                     PrintPeak(objRFE)      
                 nLastDisplayIndex=objRFE.SweepData.Count
         else:
-            print("Error: Device connected is a Signal Generator. \nPlease, connect a Spectrum Analyzer")
+            print("---- Signal Generator Example ----")
+            objRFE.RFGenCWFrequencyMHZ = 500;
+            if(objRFE.ExpansionBoardActive):
+                objRFE.RFGenExpansionPowerDBM = -40
+                print("CW setting: " + str(objRFE.RFGenExpansionPowerDBM) + " dBm at " + str(objRFE.RFGenCWFrequencyMHZ) + " MHz")
+            else:
+                objRFE.RFGenPowerLevel = 0 #low power setting
+                objRFE.RFGenHighPowerSwitch = False  
+                print("CW setting: " + str(objRFE.GetSignalGeneratorEstimatedAmplitude(objRFE.RFGenCWFrequencyMHZ)) + "dBm" + " at " + str(objRFE.RFGenCWFrequencyMHZ) + " MHz")
+
+            print("CW power ON")
+            objRFE.SendCommand_GeneratorCW()
+            time.sleep(5)
+            print("CW power OFF")
+            objRFE.SendCommand_GeneratorRFPowerOFF()
     else:
         print("Not Connected")
 except Exception as obEx:

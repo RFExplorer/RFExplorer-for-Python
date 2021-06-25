@@ -31,7 +31,7 @@ def PrintPeak(objAnalazyer):
 	"""
     nIndex = objAnalazyer.SweepData.Count-1
     objSweepTemp = objAnalazyer.SweepData.GetData(nIndex)
-    nStep = objSweepTemp.GetPeakStep()      #Get index of the peak
+    nStep = objSweepTemp.GetPeakDataPoint()      #Get index of the peak
     fAmplitudeDBM = objSweepTemp.GetAmplitude_DBM(nStep)    #Get amplitude of the peak
     fCenterFreq = objSweepTemp.GetFrequencyMHZ(nStep)   #Get frequency of the peak
 

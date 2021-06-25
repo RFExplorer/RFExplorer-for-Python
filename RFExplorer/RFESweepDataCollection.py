@@ -5,7 +5,7 @@
 
 #============================================================================
 #RF Explorer Python Libraries - A Spectrum Analyzer for everyone!
-#Copyright © 2010-20 Ariel Rocholl, www.rf-explorer.com
+#Copyright © 2010-21 RF Explorer Technologies SL, www.rf-explorer.com
 #
 #This application is free software; you can redistribute it and/or
 #modify it under the terms of the GNU Lesser General Public
@@ -115,7 +115,7 @@ class RFESweepDataCollection:
                 return False
 
             if (not self.m_MaxHoldData):
-                self.m_MaxHoldData = RFESweepData(SweepData.StartFrequencyMHZ, SweepData.StepFrequencyMHZ, SweepData.TotalSteps)
+                self.m_MaxHoldData = RFESweepData(SweepData.StartFrequencyMHZ, SweepData.StepFrequencyMHZ, SweepData.TotalDataPoints)
             if (self.m_nUpperBound >= (len(self.m_arrData) - 1)):
                 if (self.m_bAutogrow):
                     self.ResizeCollection(10 * 1000) #add 10K samples more
@@ -130,7 +130,7 @@ class RFESweepDataCollection:
             self.m_arrData[self.m_nUpperBound] = SweepData
             
             nInd = 0
-            while nInd < SweepData.TotalSteps:
+            while nInd < SweepData.TotalDataPoints:
                 if (SweepData.GetAmplitudeDBM(nInd, None, False) > self.m_MaxHoldData.GetAmplitudeDBM(nInd, None, False)):
                     self.m_MaxHoldData.SetAmplitudeDBM(nInd, SweepData.GetAmplitudeDBM(nInd, None, False))
                 nInd += 1
@@ -179,9 +179,9 @@ class RFESweepDataCollection:
 
         nTotalIterations = nEnd - nStart + 1
         try:
-            objReturn = RFESweepData(self.m_arrData[nEnd].StartFrequencyMHZ, self.m_arrData[nEnd].StepFrequencyMHZ, self.m_arrData[nEnd].TotalSteps)
+            objReturn = RFESweepData(self.m_arrData[nEnd].StartFrequencyMHZ, self.m_arrData[nEnd].StepFrequencyMHZ, self.m_arrData[nEnd].TotalDataPoints)
 
-            for nSweepInd in objReturn.TotalSteps:
+            for nSweepInd in objReturn.TotalDataPoints:
                 #sDebugText += "[" + nSweepInd + "]:"
                 fSweepValue = 0.0
                 arrSweepValues = [0.0] * nTotalIterations

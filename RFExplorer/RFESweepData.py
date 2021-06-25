@@ -5,7 +5,7 @@
 
 #============================================================================
 #RF Explorer Python Libraries - A Spectrum Analyzer for everyone!
-#Copyright © 2010-20 Ariel Rocholl, www.rf-explorer.com
+#Copyright © 2010-21 RF Explorer Technologies SL, www.rf-explorer.com
 #
 #This application is free software; you can redistribute it and/or
 #modify it under the terms of the GNU Lesser General Public
@@ -31,12 +31,12 @@ from RFExplorer import RFExplorer
 class RFESweepData:
     """Class support a full sweep of data from RF Explorer, and it is used in the RFESweepDataCollection container
 	"""
-    def __init__(self, fStartFreqMHZ, fStepFreqMHZ, nTotalSteps):
+    def __init__(self, fStartFreqMHZ, fStepFreqMHZ, nTotalDataPoints):
         self.m_Time = datetime.now()
-        self.m_nTotalSteps = nTotalSteps
+        self.m_nTotalDataPoints = nTotalDataPoints
         self.m_fStartFrequencyMHZ = fStartFreqMHZ
         self.m_fStepFrequencyMHZ = fStepFreqMHZ
-        self.m_arrAmplitude = [RFE_Common.CONST_MIN_AMPLITUDE_DBM] * self.m_nTotalSteps     # The actual data container, a consecutive set of dBm amplitude values
+        self.m_arrAmplitude = [RFE_Common.CONST_MIN_AMPLITUDE_DBM] * self.m_nTotalDataPoints     # The actual data container, a consecutive set of dBm amplitude values
         self.m_arrBLOB = []
         self.m_sBLOBString = ""   #variable used to internall store byte array in string format received if is used externally
         
@@ -50,7 +50,7 @@ class RFESweepData:
     def EndFrequencyMHZ(self):
         """Get End frequency
 		"""
-        return self.GetFrequencyMHZ(self.m_nTotalSteps)
+        return self.GetFrequencyMHZ(self.m_nTotalDataPoints - 1)
 
     @property
     def StepFrequencyMHZ(self):
@@ -65,7 +65,13 @@ class RFESweepData:
     def TotalSteps(self):
         """Total number of sweep steps captured
 		"""
-        return self.m_nTotalSteps
+        return (self.m_nTotalDataPoints - 1)
+
+    @property
+    def TotalDataPoints(self):
+        """Total number of sweep data points captured (same as TotalSteps + 1)
+		"""
+        return self.m_nTotalDataPoints
 
     @property
     def CaptureTime(self):
@@ -92,18 +98,18 @@ class RFESweepData:
         bOk = True
 
         try:
-            if ((len(sLine) > 2) and (sLine[:2] == "$S")):
+            if ((len(sLine) > 2) and (sLine[:2] == "$S") and (len(sLine[2:]) == self.m_nTotalDataPoints)):
                 if (bBLOB):
-                    self.m_arrBLOB = [bytes(0)] * self.TotalSteps
-                objSweep = RFESweepData(self.StartFrequencyMHZ, self.StepFrequencyMHZ, self.TotalSteps)
+                    self.m_arrBLOB = [bytes(0)] * self.m_nTotalDataPoints
+                objSweep = RFESweepData(self.StartFrequencyMHZ, self.StepFrequencyMHZ, self.m_nTotalDataPoints)
                 objSweep.CaptureTime = datetime.now()
-                #print("sLine length: " + str(len(sLine)) +" - "+ "TotalSteps:
-                #" + str(self.TotalSteps))
+                #print("sLine length: " + str(len(sLine)) +" - "+ "TotalDataPoints: " + str(self.m_nTotalDataPoints))
                 if (bString):
-                    self.m_sBLOBString = sLine[2:(self.TotalSteps + 2)]
-                    print("sLine: " + sLine[2:(self.TotalSteps + 2)])
-                for nInd in range(self.TotalSteps):
-                    #print("sLine byte: " + sLine[2 + nInd])
+                    self.m_sBLOBString = sLine[2:(self.m_nTotalDataPoints + 2)]
+                    print("sLine: " + sLine[2:(self.m_nTotalDataPoints + 2)])
+
+                for nInd in range(self.m_nTotalDataPoints):
+                    #print("sLine byte[" + str(nInd) + "]:"+ str(sLine[2 + nInd].encode('utf-8')))
                     nVal = ord(sLine[2 + nInd])
                     fVal = nVal / -2.0
                     if (bBLOB):
@@ -112,64 +118,64 @@ class RFESweepData:
             else:
                 bOk = False
         except Exception as obEx:
-            print("Error in RFEScreenData - ProcessReceivedString(): " + str(obEx))
+            print("Error in RFESweepData - ProcessReceivedString(): " + str(obEx))
             bOk = False
 
         return bOk
     
-    def GetAmplitude_DBM(self, nStep):
+    def GetAmplitude_DBM(self, nDataPoint):
         """Returns amplitude data in dBm.  This is the value as it was read from
         the device or from a file so it is not adjusted by offset or additionally compensated in any way.
         If the value was read from a device, it may already be an adjusted value including device configured offset.
 
         Parameters:
-            nStep -- Internal frequency step or bucket to read data from
+            nDataPoint -- Internal frequency step or bucket to read data from
         Returns:
 		    Float Value in dBm
 		"""
-        return self.GetAmplitudeDBM(nStep, None, False)
+        return self.GetAmplitudeDBM(nDataPoint, None, False)
 
-    def GetAmplitudeDBM(self, nStep, AmplitudeCorrection, bUseCorrection):
+    def GetAmplitudeDBM(self, nDataPoint, AmplitudeCorrection, bUseCorrection):
         """Returns amplitude data in dBm. This is the value as it was read from 
         the device or from a file so it is not adjusted by offset or additionally compensated in any way. 
         If the value was read from a device,
         it may already be an adjusted value including device configured offset.
 
         Parameters:
-            nStep               -- Internal frequency step or bucket to read data from
+            nDataPoint          -- Internal frequency data point to read data from
             AmplitudeCorrection -- Optional parameter, can be None. If different than None, use the amplitude correction table
             bUseCorrection      -- If the AmplitudeCorrection is not None, this boolean will tell whether to use it or not
         Returns:
 		    Float Value in dBm
 		"""
-        if (nStep < self.m_nTotalSteps):
+        if (nDataPoint < self.m_nTotalDataPoints):
             if ((AmplitudeCorrection) and bUseCorrection):
-                return self.m_arrAmplitude[nStep] + AmplitudeCorrection.GetAmplitudeCalibration(int(self.GetFrequencyMHZ(nStep))) 
+                return self.m_arrAmplitude[nDataPoint] + AmplitudeCorrection.GetAmplitudeCalibration(int(self.GetFrequencyMHZ(nDataPoint))) 
             else:
-                return self.m_arrAmplitude[nStep]
+                return self.m_arrAmplitude[nDataPoint]
         else:
             return RFE_Common.CONST_MIN_AMPLITUDE_DBM
 
-    def SetAmplitudeDBM(self, nStep, fDBM):
+    def SetAmplitudeDBM(self, nDataPoint, fDBM):
         """Set Amplitude in dBm 
 
         Parameters:
-            nStep -- Internal frequency step or bucket where to set data
-            fDBM  -- New value in dBm
+            nDataPoint  -- Internal frequency data point where to set data
+            fDBM        -- New value in dBm
 		"""
-        if (nStep < self.m_nTotalSteps):
-            self.m_arrAmplitude[nStep] = fDBM
+        if (nDataPoint < self.m_nTotalDataPoints):
+            self.m_arrAmplitude[nDataPoint] = fDBM
 
-    def GetFrequencyMHZ(self, nStep):
+    def GetFrequencyMHZ(self, nDataPoint):
         """Get frequency in MHz 
             
         Parameters:
-            nStep -- Internal frequency step or bucket to read data from
+            nDataPoint -- Internal frequency data point to read data from
         Returns:
 		    Float Frequency in MHz, zero otherwise
 		"""
-        if (nStep < self.m_nTotalSteps):
-            return self.m_fStartFrequencyMHZ + (self.m_fStepFrequencyMHZ * nStep)
+        if (nDataPoint < self.m_nTotalDataPoints):
+            return self.m_fStartFrequencyMHZ + (self.m_fStepFrequencyMHZ * nDataPoint)
         else:
             return 0.0
 
@@ -179,36 +185,36 @@ class RFESweepData:
         Returns:
 		    Float Frequency span in MHz
 		"""
-        return (self.m_fStepFrequencyMHZ * (self.m_nTotalSteps - 1))
+        return (self.m_fStepFrequencyMHZ * self.TotalSteps)
 
-    def GetMinStep(self):
+    def GetMinDataPoint(self):
         """Returns the step of the lowest amplitude value found
                 
         Returns:
-		    Integer The step of the lowest amplitude value
+		    Integer The data point of the lowest amplitude value
 		"""
-        nStep = 0
+        nMinDataPoint = 0
         fMin = RFE_Common.CONST_MAX_AMPLITUDE_DBM
-        for nInd in range(self.m_nTotalSteps):
+        for nInd in range(self.m_nTotalDataPoints):
             if (fMin > self.m_arrAmplitude[nInd]):
                 fMin = self.m_arrAmplitude[nInd]
-                nStep = nInd
-        return nStep
+                nMinDataPoint = nInd
+        return nMinDataPoint
 
-    def GetPeakStep(self):
+    def GetPeakDataPoint(self):
         """Returns the step of the highest amplitude value found
                         
         Returns:
-		    Integer The step of the highest amplitude value
+		    Integer The data point of the highest amplitude value
 		"""
-        nStep = 0
+        nPeakDataPoint = 0
         fPeak = RFE_Common.CONST_MIN_AMPLITUDE_DBM
 
-        for nInd in range(self.m_nTotalSteps):
+        for nInd in range(self.m_nTotalDataPoints):
             if (fPeak < self.m_arrAmplitude[nInd]):
                 fPeak = self.m_arrAmplitude[nInd]
-                nStep = nInd
-        return nStep
+                nPeakDataPoint = nInd
+        return nPeakDataPoint
 
     def IsSameConfiguration(self, objOther):
         """Compare new object configuration with stored configuration data
@@ -226,7 +232,7 @@ class RFESweepData:
         Returns: 
             RFESweepData  Duplicate object
 		"""
-        objSweep = RFESweepData(self.StartFrequencyMHZ, self.StepFrequencyMHZ, self.m_nTotalSteps)
+        objSweep = RFESweepData(self.StartFrequencyMHZ, self.StepFrequencyMHZ, self.m_nTotalDataPoints)
 
         objSweep.m_arrAmplitude = self.m_arrAmplitude.copy()
 
@@ -242,7 +248,7 @@ class RFESweepData:
         fChannelPower = RFE_Common.CONST_MIN_AMPLITUDE_DBM
         fPowerTemp = 0.0
 
-        for nInd in range(self.m_nTotalSteps):
+        for nInd in range(self.m_nTotalDataPoints):
             fPowerTemp += RFExplorer.Convert_dBm_2_mW(self.m_arrAmplitude[nInd])
 
         if (fPowerTemp > 0.0):
@@ -259,14 +265,19 @@ class RFESweepData:
         Returns:
             String All sweep data in CSV format
 		"""
+        
         sResult = "Sweep data: " + str("{0:.3f}".format(self.StartFrequencyMHZ)) + " - " + "MHz " + str("{0:.3f}".format(self.StepFrequencyMHZ)) + "MHz " + " - " + "Steps: " + str(self.TotalSteps)
+        try:
+            for nDataPoint in range(self.m_nTotalDataPoints):
+                if (nDataPoint > 0):
+                    sResult += ","
+                if ((nDataPoint % 16) == 0):
+                    sResult += "\n"
+                sResult += str('{:04.1f}'.format(self.GetAmplitudeDBM(nDataPoint, None, False)))
+        except Exception as obEx:
+            if self.m_nVerboseLevel>0: 
+                print("m_arrReceivedStrings processing: " + str(obEx))
 
-        for nStep in range(self.TotalSteps):
-            if (nStep > 0):
-                sResult += ","
-            if ((nStep % 16) == 0):
-                sResult += "\n"
-            sResult += str('{:04.1f}'.format(self.GetAmplitudeDBM(nStep, None, False)))
         return sResult
 
     def SaveFileCSV(self, sFilename, cCSVDelimiter, AmplitudeCorrection):

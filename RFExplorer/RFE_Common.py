@@ -5,7 +5,7 @@
 
 #============================================================================
 #RF Explorer Python Libraries - A Spectrum Analyzer for everyone!
-#Copyright © 2010-20 Ariel Rocholl, www.rf-explorer.com
+#Copyright © 2010-21 RF Explorer Technologies SL, www.rf-explorer.com
 #
 #This application is free software; you can redistribute it and/or
 #modify it under the terms of the GNU Lesser General Public
@@ -24,7 +24,12 @@
 
 from enum import Enum
 
-CONST_RFEXPLORER_FIRMWARE_CERTIFIED = "01.15"  #Firmware version of RF Explorer which was tested and certified with this PC Client
+#Firmware version of RF Explorer device which was tested and certified with this library version
+CONST_RFESA_FIRMWARE_CERTIFIED = "01.33";           #Standard Analyzer
+CONST_RFESA_PLUS_FIRMWARE_CERTIFIED = "03.28";      #Plus Analizer models
+CONST_RFEGEN_FIRMWARE_CERTIFIED = "01.34";          #Generator 
+CONST_RFESA_AUDIOPRO_FIRMWARE_CERTIFIED = "03.08";  #RF Explorer AudioPro model
+CONST_RFESA_IOT_FIRMWARE_CERTIFIED = "01.15";       #IoT module
 
 CONST_FCY_CLOCK = 16 * 1000 * 1000   #RFECommunicator - public const UInt32 FCY_CLOCK = 16 * 1000 * 1000
 CONST_MIN_AMPLITUDE_DBM = -120.0   #RFECommunicator - public const float MIN_AMPLITUDE_DBM = -120.0f
@@ -36,8 +41,15 @@ CONST_ACKNOWLEDGE = "#ACK"
 
 CONST_RFGEN_MIN_FREQ_MHZ = 23.438
 CONST_RFGEN_MAX_FREQ_MHZ = 6000
+CONST_RFGENEXP_MIN_FREQ_MHZ = 0.100
+CONST_RFGENEXP_MAX_FREQ_MHZ = 6000
+
+CONST_RFE_MIN_SWEEP_POINTS = 112;
+CONST_RFE_MIN_SWEEP_STEPS = CONST_RFE_MIN_SWEEP_POINTS - 1;
 
 CONST_RESETSTRING = "(C) Ariel Rocholl "
+
+CONST_EEOT = "\xFF\xFE\xFF\xFE\x00"      #this indicates Early End Of Transmission, sent by devices with firmware > 1.27 and 3.10
 
 CONST_POS_INTERNAL_CALIBRATED_6G = 134  #start position for 6G model
 CONST_POS_INTERNAL_CALIBRATED_MWSUB3G = 0  #start position for MWSUB3G model
@@ -51,15 +63,27 @@ CONST_POS_END_INTERNAL_CALIBRATED_WSUB1G_PLUS = 258 #end position for WSUB1G+, t
 class eModel(Enum): 
     """All possible RF Explorer model values
     """
-    MODEL_433 = 0  
-    MODEL_868 = 1
-    MODEL_915 = 2
-    MODEL_WSUB1G = 3
+    MODEL_433 = 0
+    MODEL_868 = 1      
+    MODEL_915 = 2     
+    MODEL_WSUB1G = 3  
     MODEL_2400 = 4
     MODEL_WSUB3G = 5
     MODEL_6G = 6
+
     MODEL_WSUB1G_PLUS = 10
+    MODEL_AUDIOPRO = 11   #note this is converted internally to MODEL_WSUB3G to simplify code, but sets m_bAudioPro to true
+    MODEL_2400_PLUS = 12
+    MODEL_4G_PLUS = 13
+    MODEL_6G_PLUS = 14
+
+    MODEL_W5G3G = 16
+    MODEL_W5G4G = 17
+    MODEL_W5G5G = 18
+
     MODEL_RFGEN = 60
+    MODEL_RFGEN_EXPANSION = 61
+
     MODEL_NONE = 0xFF
 
 class eMode(Enum):
@@ -104,5 +128,16 @@ class eDSP(Enum):
     DSP_FILTER = 1
     DSP_FAST = 2
     DSP_NO_IMG = 3
+
+class eInputStage(Enum):
+    """Input stages modes
+    """
+    Direct = 0
+    Attenuator_30dB = 1
+    LNA_25dB = 2
+    Attenuator_60dB = 3
+    LNA_12dB = 4
+
+      
 
 #---------------------------------------------------------

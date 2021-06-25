@@ -14,6 +14,8 @@
 import time
 from datetime import datetime, timedelta
 import RFExplorer
+from RFExplorer import RFE_Common 
+import math
 
 #---------------------------------------------------------
 # Helper functions
@@ -24,9 +26,10 @@ def PrintPeak(objAnalazyer):
 	"""
     nIndex = objAnalazyer.SweepData.Count-1
     objSweepTemp = objAnalazyer.SweepData.GetData(nIndex)
-    nStep = objSweepTemp.GetPeakStep()      #Get index of the peak
+    nStep = objSweepTemp.GetPeakDataPoint()      #Get index of the peak
     fAmplitudeDBM = objSweepTemp.GetAmplitude_DBM(nStep)    #Get amplitude of the peak
     fCenterFreq = objSweepTemp.GetFrequencyMHZ(nStep)   #Get frequency of the peak
+    fCenterFreq = math.floor(fCenterFreq * 10 ** 3) / 10 ** 3   #truncate to 3 decimals
 
     print("Sweep[" + str(nIndex)+"]: Peak: " + "{0:.3f}".format(fCenterFreq) + "MHz  " + str(fAmplitudeDBM) + "dBm")
 

@@ -12,6 +12,8 @@
 
 import time
 import RFExplorer
+from RFExplorer import RFE_Common 
+import math
 
 #---------------------------------------------------------
 # Helper functions
@@ -22,11 +24,12 @@ def PrintPeak(objAnalazyer):
     """
     nIndex = objAnalazyer.SweepData.Count-1
     objSweepTemp = objAnalazyer.SweepData.GetData(nIndex)
-    nStep = objSweepTemp.GetPeakStep()      #Get index of the peak
+    nStep = objSweepTemp.GetPeakDataPoint()      #Get index of the peak
     fAmplitudeDBM = objSweepTemp.GetAmplitude_DBM(nStep)    #Get amplitude of the peak
     fCenterFreq = objSweepTemp.GetFrequencyMHZ(nStep)   #Get frequency of the peak
+    fCenterFreq = math.floor(fCenterFreq * 10 ** 3) / 10 ** 3   #truncate to 3 decimals
 
-    print("Peak: " + "{0:.3f}".format(fCenterFreq) + "MHz  " + str(fAmplitudeDBM) + "dBm")
+    print("     Peak: " + "{0:.3f}".format(fCenterFreq) + "MHz  " + str(fAmplitudeDBM) + "dBm")
 
 def ControlSettings(objAnalazyer):
     """This functions check user settings 
@@ -106,39 +109,32 @@ try:
             #Control settings
             SpanSize, StartFreq, StopFreq = ControlSettings(objRFE)
             if(SpanSize and StartFreq and StopFreq):
-                #set new frequency range
-                objRFE.UpdateDeviceConfig(StartFreq, StopFreq)
-
-                LastStartFreq = 0
                 nInd = 0
-                while (StopFreq<=STOP_SCAN_MHZ and StartFreq < StopFreq): 
-                    #Process all received data from device 
-                    while (objRFE.SweepData.Count<1):
-                        objRFE.ProcessReceivedString(True)
+                while (True): 
+                    #Set new configuration into device
+                    objRFE.UpdateDeviceConfig(StartFreq, StopFreq)
 
-                    #Print data if received new sweep and a different start frequency 
-                    if(StartFreq != LastStartFreq):
-                        nInd += 1
-                        print("Freq range["+ str(nInd) + "]: " + str(StartFreq) +" - "+ str(StopFreq) + "MHz" )
-                        PrintPeak(objRFE)
-                        LastFreqStart = StartFreq
+                    objSweep=None
+                    #Wait for new configuration to arrive (as it will clean up old sweep data)
+                    while(True):
+                        objRFE.ProcessReceivedString(True);
+                        if (objRFE.SweepData.Count>0):
+                            objSweep=objRFE.SweepData.GetData(objRFE.SweepData.Count-1)
 
+                            nInd += 1
+                            print("Freq range["+ str(nInd) + "]: " + str(StartFreq) +" - "+ str(StopFreq) + "MHz" )
+                            PrintPeak(objRFE)
+                        if(math.fabs(objRFE.StartFrequencyMHZ - StartFreq) <= 0.001):
+                                break
+  
                     #set new frequency range
                     StartFreq = StopFreq
                     StopFreq = StartFreq + SpanSize
-
-                    #Maximum stop/start frequency control
                     if (StopFreq > STOP_SCAN_MHZ):
                         StopFreq = STOP_SCAN_MHZ
-                    if (StartFreq < StopFreq):
-                        objRFE.UpdateDeviceConfig(StartFreq, StopFreq)
 
-                        #Wait for new configuration to arrive (as it will clean up old sweep data)
-                        objSweep=None
-                        while ((objSweep is None) or objSweep.StartFrequencyMHZ!=StartFreq):
-                            objRFE.ProcessReceivedString(True)
-                            if (objRFE.SweepData.Count>0):
-                                objSweep=objRFE.SweepData.GetData(objRFE.SweepData.Count-1)
+                    if (StartFreq >= StopFreq):
+                        break
             else:
                 print("Error: settings are wrong.\nPlease, change and try again")
         else:
