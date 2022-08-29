@@ -790,7 +790,7 @@ class RFECommunicator(object):
         return self.m_eInputStage
     @InputStage.setter
     def InputStage(self, value):
-        if (self.IsInputStageAvailable()):
+        if (self.IsInputStageAvailable):
             nNewInputStage = value;
             if (self.m_eActiveModel == RFE_Common.eModel.MODEL_2400_PLUS):
                 if (nNewInputStage == RFE_Common.eInputStage.LNA_12dB):
