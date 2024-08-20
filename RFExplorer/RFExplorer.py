@@ -1668,7 +1668,7 @@ class RFECommunicator(object):
         Parameters:
             nDataPoints -- a value in the range of 112-65536, note a value multiple of 2
         """
-        SendCommand("Cj" + chr(int((nDataPoints & 0xFF00) >> 8)) + chr(int(nDataPoints & 0xFF)))
+        self.SendCommand("Cj" + chr(int((nDataPoints & 0xFF00) >> 8)) + chr(int(nDataPoints & 0xFF)))
 
     def SendCommand_SweepDataPoints(self, nDataPoints):
         """Define RF Explorer SA sweep data points
