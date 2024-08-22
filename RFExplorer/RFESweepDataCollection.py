@@ -274,7 +274,7 @@ class RFESweepDataCollection:
 
                 sHeader = "Sweep" + cCSVDelimiter + "Date" + cCSVDelimiter + "Time" + cCSVDelimiter + "Milliseconds"
 
-                for nStep in range(objFirst.TotalSteps):
+                for nStep in range(objFirst.TotalDataPoints):
                     dFrequency = objFirst.StartFrequencyMHZ + nStep * (objFirst.StepFrequencyMHZ)
                     sHeader += cCSVDelimiter + "{:08.3f}".format(dFrequency)
 
