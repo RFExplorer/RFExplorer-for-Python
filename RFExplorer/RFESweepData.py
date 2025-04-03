@@ -290,7 +290,7 @@ class RFESweepData:
 		"""
         try:
             with open(sFilename, 'w') as objWriter:
-                for nStep in range(self.TotalSteps):
+                for nStep in range(self.TotalDataPoints):
                     objWriter.write("{0:.3f}".format(self.GetFrequencyMHZ(nStep)))
                     objWriter.write(cCSVDelimiter)
                     objWriter.write("{0:.1f}".format(self.GetAmplitudeDBM(nStep, AmplitudeCorrection, AmplitudeCorrection != None)))

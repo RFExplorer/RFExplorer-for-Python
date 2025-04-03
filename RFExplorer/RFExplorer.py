@@ -1668,7 +1668,7 @@ class RFECommunicator(object):
         Parameters:
             nDataPoints -- a value in the range of 112-65536, note a value multiple of 2
         """
-        SendCommand("Cj" + chr(int((nDataPoints & 0xFF00) >> 8)) + chr(int(nDataPoints & 0xFF)))
+        self.SendCommand("Cj" + chr(int((nDataPoints & 0xFF00) >> 8)) + chr(int(nDataPoints & 0xFF)))
 
     def SendCommand_SweepDataPoints(self, nDataPoints):
         """Define RF Explorer SA sweep data points
@@ -1685,7 +1685,7 @@ class RFECommunicator(object):
             sCommand -- Unformatted command from http://www.rf-explorer.com/API
 		"""
         sCompleteCommand = "#" + chr(len(sCommand) + 2) + sCommand
-        self.m_objSerialPort.write(sCompleteCommand.encode('utf-8'))
+        self.m_objSerialPort.write(sCompleteCommand.encode('latin_1'))
         if self.m_nVerboseLevel>5:
             print("RFE Command: #(" + str(len(sCompleteCommand)) + ")" + sCommand + " [" + " ".join("{:02X}".format(ord(c)) for c in sCompleteCommand) + "]")
         
